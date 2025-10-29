@@ -35,10 +35,12 @@ from dinov3.data import (
     make_dataset,
     CombinedDataLoader,
 )
+from dinov3.data.collate import collate_data_and_cast_hrlr
 from dinov3.logging import MetricLogger, setup_logging
 from dinov3.train.cosine_lr_scheduler import CosineScheduler, linear_warmup_cosine_decay
 from dinov3.train.multidist_meta_arch import MultiDistillationMetaArch
 from dinov3.train.ssl_meta_arch import SSLMetaArch
+from dinov3.train.ssl_meta_arch_hrlr import SSLMetaArchHRLR
 
 assert torch.__version__ >= (2, 1)
 torch.backends.cuda.matmul.allow_tf32 = True  # pytorch 1.12 sets this to false by default
@@ -290,7 +292,7 @@ def build_data_loader_from_cfg(
         dataloader_batch_size_per_gpu = cfg.train.batch_size_per_gpu
 
     collate_fn = partial(
-        collate_data_and_cast,
+        collate_data_and_cast_hrlr if cfg.train.with_sr else collate_data_and_cast,
         mask_ratio_tuple=cfg.ibot.mask_ratio_min_max,
         mask_probability=cfg.ibot.mask_sample_probability,
         dtype={
@@ -602,6 +604,7 @@ def main(argv=None):
         )
     meta_arch = {
         "SSLMetaArch": SSLMetaArch,
+        "SSLMetaArchHRLR": SSLMetaArchHRLR,
         "MultiDistillationMetaArch": MultiDistillationMetaArch,
     }.get(cfg.MODEL.META_ARCHITECTURE, None)
     if meta_arch is None:

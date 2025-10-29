@@ -23,6 +23,14 @@ class ImageDataDecoder(Decoder):
         return Image.open(f).convert(mode="RGB")
 
 
+class IdentityDecoder(Decoder):
+    def __init__(self, data: Any) -> None:
+        self.data = data
+
+    def decode(self) -> Any:
+        return self.data
+
+
 class TargetDecoder(Decoder):
     def __init__(self, target: Any):
         self._target = target

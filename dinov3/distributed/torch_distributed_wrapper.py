@@ -10,7 +10,7 @@ import socket
 import subprocess
 from datetime import timedelta
 from enum import Enum
-from typing import List, Sequence
+from typing import List, Sequence, Optional
 
 import torch
 import torch.distributed as dist
@@ -229,7 +229,7 @@ def enable_distributed(
     overwrite: bool = False,
     nccl_async_error_handling: bool = False,
     restrict_print_to_main_process: bool = True,
-    timeout: timedelta | None = None,
+    timeout: Optional[timedelta] = None,
 ):
     """Enable distributed mode.
 
@@ -258,10 +258,15 @@ def enable_distributed(
         nccl_async_error_handling=nccl_async_error_handling,
     )
 
-    if set_cuda_current_device:
-        torch.cuda.set_device(torch_env.local_rank)
+    # if set_cuda_current_device:
+    #     torch.cuda.set_device(torch_env.local_rank)
 
-    dist.init_process_group(backend="nccl", timeout=timeout)
+    # Enable NCCL debugging
+    os.environ["NCCL_DEBUG"] = "INFO"
+
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = str(40113)
+    dist.init_process_group(backend="nccl", world_size=1, rank=0)
     dist.barrier()
 
     if restrict_print_to_main_process:

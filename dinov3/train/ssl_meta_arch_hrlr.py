@@ -6,6 +6,7 @@
 import gc
 import logging
 from functools import partial
+from typing import Union
 
 import torch
 from omegaconf import OmegaConf
@@ -27,7 +28,7 @@ from dinov3.utils import count_parameters
 logger = logging.getLogger("dinov3")
 
 
-class SSLMetaArch(nn.Module):
+class SSLMetaArchHRLR(nn.Module):
     """
     Modified version of SSLMetaArchCompilable including gram loss:
     - Gram loss is used only if gram.use_loss is set to true
@@ -351,20 +352,22 @@ class SSLMetaArch(nn.Module):
 
     def forward_backward(
         self, data, *, teacher_temp, iteration=0, **ignored_kwargs
-    ) -> tuple[Tensor, dict[str, float | Tensor]]:
+    ) -> tuple[Tensor, dict[str, Union[float, Tensor]]]:
         del ignored_kwargs
         metrics_dict = {}
 
         # Shapes
         n_global_crops = 2
         n_local_crops = self.n_local_crops  # self.cfg.crops.local_crops_number
-        B = data["collated_local_crops"].shape[0] // n_local_crops
-        assert data["collated_global_crops"].shape[0] == n_global_crops * B
+        B = data["collated_local_crops_hr"].shape[0] // n_local_crops
+        assert data["collated_global_crops_hr"].shape[0] == n_global_crops * B
         metrics_dict["local_batch_size"] = B
         metrics_dict["global_batch_size"] = data["global_batch_size"]
 
-        global_crops = data["collated_global_crops"].cuda(non_blocking=True)
-        local_crops = data["collated_local_crops"].cuda(non_blocking=True)
+        global_crops_hr = data["collated_global_crops_hr"].cuda(non_blocking=True)
+        global_crops_lr = data["collated_global_crops_lr"].cuda(non_blocking=True)
+        local_crops_hr = data["collated_local_crops_hr"].cuda(non_blocking=True)
+        local_crops_lr = data["collated_local_crops_lr"].cuda(non_blocking=True)
         masks = data["collated_masks"].cuda(non_blocking=True)
         mask_indices_list = data["mask_indices_list"].cuda(non_blocking=True)
         masks_weight = data["masks_weight"].cuda(non_blocking=True)
@@ -380,7 +383,7 @@ class SSLMetaArch(nn.Module):
 
         # Teacher output (will trigger an all-gather to unshard)
         teacher_global = self.get_teacher_output(
-            global_crops.unflatten(0, (n_global_crops, B)),
+            global_crops_hr.unflatten(0, (n_global_crops, B)),
             teacher_temp=teacher_temp,
             n_masked_patches_tensor=n_masked_patches_tensor,
             mask_indices_list=mask_indices_list,
@@ -389,8 +392,8 @@ class SSLMetaArch(nn.Module):
 
         # Student output (will trigger an all-gather to unshard)
         student_global, student_local = self.get_student_output(
-            global_crops=global_crops.unflatten(0, (n_global_crops, B)),
-            local_crops=local_crops.unflatten(0, (n_local_crops, B)),
+            global_crops=global_crops_lr.unflatten(0, (n_global_crops, B)),
+            local_crops=local_crops_lr.unflatten(0, (n_local_crops, B)),
             upperbound=data["upperbound"],
             masks=masks,
             mask_indices_list=mask_indices_list,
@@ -403,7 +406,7 @@ class SSLMetaArch(nn.Module):
                 masks=masks,
                 teacher_global=teacher_global,
                 student_global=student_global,
-                student_global_crops_size=global_crops.shape[-1],
+                student_global_crops_size=global_crops_hr.shape[-1],
             )
         else:
             gram_global = {}
