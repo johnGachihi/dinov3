@@ -64,6 +64,9 @@ class SSLMetaArchHRLR(nn.Module):
         self.embed_dim = embed_dim  # D
         self.dino_out_dim = cfg.dino.head_n_prototypes  # K
 
+        logger.info("OPTIONS -- SR")
+        logger.info(f"OPTIONS -- SR -- with_sr: {cfg.train.with_sr}")
+
         logger.info("OPTIONS -- DINO")
         logger.info(f"OPTIONS -- DINO -- loss_weight: {cfg.dino.loss_weight}")
         logger.info(f"OPTIONS -- DINO -- global_ignore_diagonal: {cfg.dino.global_ignore_diagonal}")
@@ -147,6 +150,7 @@ class SSLMetaArchHRLR(nn.Module):
         self.dino_loss_weight = self.cfg.dino.loss_weight
         self.dino_koleo_loss_weight = self.cfg.dino.koleo_loss_weight
         self.ibot_loss_weight = self.cfg.ibot.loss_weight
+        self.with_sr = self.cfg.train.with_sr
 
         # Local loss reweighting
         if self.cfg.dino.reweight_dino_local_loss:
@@ -383,7 +387,7 @@ class SSLMetaArchHRLR(nn.Module):
 
         # Teacher output (will trigger an all-gather to unshard)
         teacher_global = self.get_teacher_output(
-            global_crops_hr.unflatten(0, (n_global_crops, B)),
+            (global_crops_hr if self.with_sr else global_crops_lr).unflatten(0, (n_global_crops, B)),
             teacher_temp=teacher_temp,
             n_masked_patches_tensor=n_masked_patches_tensor,
             mask_indices_list=mask_indices_list,
@@ -745,37 +749,21 @@ class SSLMetaArchHRLR(nn.Module):
             torch._foreach_add_(gramteacher_param_list, teacher_param_list, alpha=1 - m)
 
     def build_data_augmentation_dino(self, cfg):
-        if cfg.train.with_sr:
-            return DataAugmentationDINOHRLR(
-                global_crops_scale=cfg.crops.global_crops_scale,
-                local_crops_scale=cfg.crops.local_crops_scale,
-                local_crops_number=cfg.crops.local_crops_number,
-                global_crops_size=cfg.crops.global_crops_size,
-                local_crops_size=cfg.crops.local_crops_size,
-                gram_teacher_crops_size=cfg.crops.gram_teacher_crops_size,
-                gram_teacher_no_distortions=cfg.crops.gram_teacher_no_distortions,
-                local_crops_subset_of_global_crops=cfg.crops.localcrops_subset_of_globalcrops,
-                horizontal_flips=cfg.crops.horizontal_flips,
-                mean_hr=cfg.crops.mean_hr,
-                std_hr=cfg.crops.std_hr,
-                mean_lr=cfg.crops.mean_lr,
-                std_lr=cfg.crops.std_lr,
-            )
-        else:
-            return DataAugmentationDINO(
-                cfg.crops.global_crops_scale,
-                cfg.crops.local_crops_scale,
-                cfg.crops.local_crops_number,
-                global_crops_size=cfg.crops.global_crops_size,
-                local_crops_size=cfg.crops.local_crops_size,
-                gram_teacher_crops_size=cfg.crops.gram_teacher_crops_size,
-                gram_teacher_no_distortions=cfg.crops.gram_teacher_no_distortions,
-                local_crops_subset_of_global_crops=cfg.crops.localcrops_subset_of_globalcrops,
-                share_color_jitter=cfg.crops.share_color_jitter,
-                horizontal_flips=cfg.crops.horizontal_flips,
-                mean=cfg.crops.rgb_mean,
-                std=cfg.crops.rgb_std,
-            )
+        return DataAugmentationDINOHRLR(
+            global_crops_scale=cfg.crops.global_crops_scale,
+            local_crops_scale=cfg.crops.local_crops_scale,
+            local_crops_number=cfg.crops.local_crops_number,
+            global_crops_size=cfg.crops.global_crops_size,
+            local_crops_size=cfg.crops.local_crops_size,
+            gram_teacher_crops_size=cfg.crops.gram_teacher_crops_size,
+            gram_teacher_no_distortions=cfg.crops.gram_teacher_no_distortions,
+            local_crops_subset_of_global_crops=cfg.crops.localcrops_subset_of_globalcrops,
+            horizontal_flips=cfg.crops.horizontal_flips,
+            mean_hr=cfg.crops.mean_hr,
+            std_hr=cfg.crops.std_hr,
+            mean_lr=cfg.crops.mean_lr,
+            std_lr=cfg.crops.std_lr,
+        )
 
     def get_maybe_fused_params_for_submodel(self, m: nn.Module):
         params_groups = get_params_groups_with_decay_fsdp(

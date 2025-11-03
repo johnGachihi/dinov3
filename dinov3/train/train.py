@@ -292,7 +292,7 @@ def build_data_loader_from_cfg(
         dataloader_batch_size_per_gpu = cfg.train.batch_size_per_gpu
 
     collate_fn = partial(
-        collate_data_and_cast_hrlr if cfg.train.with_sr else collate_data_and_cast,
+        collate_data_and_cast_hrlr,
         mask_ratio_tuple=cfg.ibot.mask_ratio_min_max,
         mask_probability=cfg.ibot.mask_sample_probability,
         dtype={
