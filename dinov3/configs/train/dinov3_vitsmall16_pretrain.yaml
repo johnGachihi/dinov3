@@ -43,7 +43,7 @@ train:
   dataset_path: sen2venus:root=/home/admin/AGML_ResearchGroup/SuperResolution/sen2venus:extra=None:split=train  # <dataset_name>:root=<root>:extra=<extra>:split=<split>
   saveckp_freq: 20
   seed: 0
-  num_workers: 5
+  num_workers: 3
   OFFICIAL_EPOCH_LENGTH: 1000
   monitor_gradient_norm: false
   chunk_schedule: []
@@ -58,7 +58,7 @@ train:
   cell_augmentation: false
   cell_augmentation_type: hpa
   sharded_eval_checkpoint: true
-  with_sr: true
+  with_sr: false
 student:
   arch: vit_small
   patch_size: 16
@@ -172,8 +172,8 @@ checkpointing:
 schedules:
   lr:
     start: 0
-    peak: 5.0e-05
-    end: 5.0e-05
+    peak: 1.0e-04  # 5.0e-05
+    end: 1.0e-04  # 5.0e-05
     warmup_epochs: 10
     freeze_last_layer_epochs: 5
   weight_decay:
