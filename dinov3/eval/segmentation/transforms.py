@@ -175,7 +175,7 @@ class FixedSideResize:
         return int(self.small_size * ratio)
 
     def _resize(self, img, label, small_size):
-        init_width, init_height = img.size
+        init_width, init_height = img.shape[1:]
         if init_height > init_width:
             new_width = small_size
             new_height = int(small_size * init_height / init_width + 0.5)
@@ -428,8 +428,8 @@ def make_segmentation_train_transforms(
     transforms_list.extend(
         [
             MaybeApplyImageLabel(transform=Fv.hflip, threshold=flip_prob),
-            PhotoMetricDistortion(),
-            NormalizeImage(mean=mean, std=std),
+            # PhotoMetricDistortion(),  # satellite imager can have more than rgb bands
+            # NormalizeImage(mean=mean, std=std),  # Done in dataset
         ]
     )
 
@@ -469,6 +469,9 @@ def make_segmentation_eval_transforms(
     if use_tta:
         transforms_list.append(HorizontalFlipAug())
     # Always return a list of tensors for prediction at evaluation time
-    transforms_list.append(TransformImages(transforms=[v2.PILToTensor(), NormalizeImage(mean=mean, std=std)]))
+    transforms_list.append(TransformImages(transforms=[
+        v2.PILToTensor(),
+        # NormalizeImage(mean=mean, std=std)
+    ]))
 
     return v2.Compose(transforms_list)

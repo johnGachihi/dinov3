@@ -7,5 +7,7 @@ from .ade20k import ADE20K
 from .coco_captions import CocoCaptions
 from .image_net import ImageNet
 from .image_net_22k import ImageNet22k
+from .mados import MADOS
 from .nyu import NYU
+from .pastis import PASTIS
 from .sen2venus import Sen2Venus

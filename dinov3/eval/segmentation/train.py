@@ -90,7 +90,7 @@ def validate(
     logger.info(f"Step {global_step}: {new_metric_values_dict}")
     # `segmentation_model` is a module list of [backbone, decoder]
     # Only put the head in train mode
-    segmentation_model.module.segmentation_model[1].train()
+    segmentation_model.segmentation_model[1].train()
     is_better = False
     if new_metric_values_dict[metric_to_save] > current_best_metric_to_save_value:
         is_better = True
@@ -129,12 +129,12 @@ def train_step(
     if scaler is not None:
         scaler.scale(loss).backward()
         scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(segmentation_model.module.parameters(), optimizer_gradient_clip)
+        torch.nn.utils.clip_grad_norm_(segmentation_model.parameters(), optimizer_gradient_clip)
         scaler.step(optimizer)
         scaler.update()
     else:
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(segmentation_model.module.parameters(), optimizer_gradient_clip)
+        torch.nn.utils.clip_grad_norm_(segmentation_model.parameters(), optimizer_gradient_clip)
         optimizer.step()
 
     if global_step > 0:  # inheritance from old mmcv code
@@ -159,9 +159,9 @@ def train_segmentation(
     )
     global_device = distributed.get_rank()
     local_device = torch.cuda.current_device()
-    segmentation_model = torch.nn.parallel.DistributedDataParallel(
-        segmentation_model.to(local_device), device_ids=[local_device]
-    )  # should be local rank
+
+    segmentation_model = segmentation_model.to(local_device)
+
     model_parameters = filter(lambda p: p.requires_grad, segmentation_model.parameters())
     logger.info(f"Number of trainable parameters: {sum(p.numel() for p in model_parameters)}")
 

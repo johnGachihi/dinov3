@@ -48,7 +48,7 @@ def evaluate_segmentation_model(
         for img_idx, img in enumerate(batch_img):
             aggregated_preds += make_inference(
                 img,
-                segmentation_model.module,
+                segmentation_model,
                 inference_mode="slide",
                 decoder_head_type=decoder_head_type,
                 rescale_to=gt.shape[-2:],

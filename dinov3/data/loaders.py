@@ -10,7 +10,7 @@ from typing import Any, Callable, List, Optional, TypeVar
 import torch
 from torch.utils.data import Sampler
 
-from .datasets import ADE20K, CocoCaptions, ImageNet, ImageNet22k, NYU, Sen2Venus
+from .datasets import ADE20K, CocoCaptions, ImageNet, ImageNet22k, MADOS, NYU, PASTIS, Sen2Venus
 from .samplers import EpochSampler, InfiniteSampler, ShardedInfiniteSampler
 
 logger = logging.getLogger("dinov3")
@@ -58,6 +58,12 @@ def _parse_dataset_str(dataset_str: str):
         class_ = Sen2Venus
         if "split" in kwargs:
             kwargs = {"root": kwargs["root"], "split": kwargs["split"]}
+    elif name == "PASTIS":
+        class_ = PASTIS
+        # Use defaults: use_tiles=True, return_first_in_time=True
+    elif name == "MADOS":
+        class_ = MADOS
+        # MADOS dataset with 15 land cover classes
     elif name == "ImageNet":
         class_ = ImageNet
         if "split" in kwargs:
