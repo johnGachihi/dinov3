@@ -326,16 +326,18 @@ class DataAugmentationDINOHRLR(object):
         self.normalize_hr = v2.Compose(
             [
                 v2.ToImage(),
-                v2.ToDtype(torch.float32, scale=True),
+                v2.ToDtype(torch.float32),
                 make_normalize_transform(mean=mean_hr, std=std_hr),
+                v2.ToDtype(torch.float32, scale=True),  # To scale only. TODO: Do better
             ]
         )
 
         self.normalize_lr = v2.Compose(
             [
                 v2.ToImage(),
-                v2.ToDtype(torch.float32, scale=True),
+                v2.ToDtype(torch.float32),
                 make_normalize_transform(mean=mean_lr, std=std_lr),
+                v2.ToDtype(torch.float32, scale=True),  # To scale only. TODO: Do better
             ]
         )
 
