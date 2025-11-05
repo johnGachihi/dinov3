@@ -292,7 +292,7 @@ def build_data_loader_from_cfg(
         dataloader_batch_size_per_gpu = cfg.train.batch_size_per_gpu
 
     collate_fn = partial(
-        collate_data_and_cast_hrlr,
+        collate_data_and_cast_hrlr if cfg.MODEL.META_ARCHITECTURE == "SSLMetaArchHRLR" else collate_data_and_cast,
         mask_ratio_tuple=cfg.ibot.mask_ratio_min_max,
         mask_probability=cfg.ibot.mask_sample_probability,
         dtype={
@@ -322,7 +322,7 @@ def build_data_loader_from_cfg(
     data_loader = make_data_loader(
         dataset=dataset,
         batch_size=batch_size,
-        num_workers=num_workers,
+        num_workers=0,
         shuffle=True,
         seed=cfg.train.seed + start_iter + 1,
         sampler_type=sampler_type,

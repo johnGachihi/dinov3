@@ -1,5 +1,5 @@
 MODEL:
-  META_ARCHITECTURE: SSLMetaArchHRLR
+  META_ARCHITECTURE: SSLMetaArch
   DEVICE: cuda
   WEIGHTS: ''
   DTYPE: float32
@@ -39,8 +39,8 @@ gram:
   use_loss: false
   compute_stats: false
 train:
-  batch_size_per_gpu: 128
-  dataset_path: sen2venus:root=/home/admin/AGML_ResearchGroup/SuperResolution/sen2venus:extra=None:split=train  # <dataset_name>:root=<root>:extra=<extra>:split=<split>
+  batch_size_per_gpu: 8
+  dataset_path: ImageNet:root=/home/admin/AGML_ResearchGroup/SuperResolution/imagenet:extra=None:split=TRAIN  # <dataset_name>:root=<root>:extra=<extra>:split=<split>
   saveckp_freq: 20
   seed: 0
   num_workers: 3
@@ -58,6 +58,7 @@ train:
   cell_augmentation: false
   cell_augmentation_type: hpa
   sharded_eval_checkpoint: true
+  original_no_sr: true
   with_sr: false
 student:
   arch: vit_small
@@ -77,7 +78,7 @@ student:
   untie_cls_and_patch_norms: false
   untie_global_and_local_cls_norm: true
   mask_k_bias: true
-  in_chans: 4
+  in_chans: 3
   pos_embed_type: rope
   pos_embed_rope_base: 100
   pos_embed_rope_min_period: null
@@ -95,7 +96,7 @@ teacher:
   warmup_teacher_temp: null
   teacher_temp: null
   warmup_teacher_temp_epochs: null
-  in_chans: 4
+  in_chans: 3
 distillation:
   enabled: false
   full_cfg_path: ''
