@@ -7,7 +7,7 @@ n_gpus: 1
 metric_to_save: 'mIoU'
 model_dtype: FLOAT32
 model:
-  config_file: /home/admin/john/SR4Seg/dinov3/dinov3/configs/train/dinov3_vitsmall16_pretrain.yaml
+  config_file: /home/admin/john/SR4Seg/dinov3/dinov3/configs/train/dinov3_vitsmall16_pretrain_sr.yaml
   pretrained_weights: /home/admin/john/SR4Seg/dinov3/logs/_temp/18012
 scheduler:
   total_iter: 20000

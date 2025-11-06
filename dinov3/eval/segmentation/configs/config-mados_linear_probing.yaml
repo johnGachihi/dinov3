@@ -2,7 +2,7 @@
 # Based on PASTIS setup but adapted for MADOS characteristics
 
 model:
-  config_file: /home/admin/john/SR4Seg/dinov3/dinov3/configs/train/dinov3_vitsmall16_pretrain.yaml
+  config_file: /home/admin/john/SR4Seg/dinov3/dinov3/configs/train/dinov3_vitsmall16_pretrain_sr.yaml
   pretrained_weights: /home/admin/john/SR4Seg/dinov3/logs/_temp/18012
   dino_hub: null
 
