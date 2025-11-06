@@ -378,10 +378,10 @@ class SSLMetaArchHRLR(nn.Module):
         n_masked_patches_tensor = data["n_masked_patches"].cuda(non_blocking=True)
 
         if self.has_gram_teacher:
-            assert "collated_gram_teacher_crops" in data, (
+            assert "collated_gram_teacher_crops_hr" in data, (
                 "no gram teacher crops in the data, have you set cfg.crops.gram_teacher_crops_size?"
             )
-            gram_teacher_crops = data["collated_gram_teacher_crops"].cuda(non_blocking=True)
+            gram_teacher_crops = data["collated_gram_teacher_crops_hr"].cuda(non_blocking=True)
         else:
             gram_teacher_crops = None
 
