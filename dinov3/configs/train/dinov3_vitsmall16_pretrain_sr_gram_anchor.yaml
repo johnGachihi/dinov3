@@ -27,7 +27,7 @@ dino:
     start: 1
     peak: 1
     end: 0.5
-    warmup_epochs: 80
+    warmup_epochs: 2
     cosine_epochs: 1
 ibot:
   loss_weight: 1.0
@@ -48,11 +48,11 @@ gram:
   compute_stats: false
   loss_weight: 1.0
   ema_teacher: false
-  ckpt: /home/admin/john/SR4Seg/dinov3/logs/sr/_temp/18012  #config
+  ckpt: /home/user/dinov3/logs/fixed_norm_gram_anchoring/eval/training_24999/sharded_teacher_checkpoint  #config
   it_load_ema_teacher: -1
   rep_update: true
   update_frequency: 10000
-  it_first_update: 110000
+  it_first_update: 26000  # 50*935 + 10000
   max_updates: 3
   normalized: true
   img_level: true
@@ -65,15 +65,15 @@ gram:
     start: 0
     peak: 0
     end: 2.0
-    warmup_epochs: 80
+    warmup_epochs: 2
     cosine_epochs: 1
 train:
-  batch_size_per_gpu: 128
-  dataset_path: sen2venus:root=/home/admin/AGML_ResearchGroup/SuperResolution/sen2venus:extra=None:split=train  # <dataset_name>:root=<root>:extra=<extra>:split=<split>
+  batch_size_per_gpu: 64
+  dataset_path: sen2venus:root=/home/user/data/sen2venus:extra=None:split=train  # <dataset_name>:root=<root>:extra=<extra>:split=<split>
   saveckp_freq: 20
   seed: 0
-  num_workers: 3
-  OFFICIAL_EPOCH_LENGTH: 1000
+  num_workers: 10
+  OFFICIAL_EPOCH_LENGTH: 935
   monitor_gradient_norm: false
   chunk_schedule: []
   cache_dataset: true
@@ -90,7 +90,7 @@ train:
   with_sr: false
 student:
   arch: vit_small
-  patch_size: 16
+  patch_size: 8
   drop_path_rate: 0.4
   layerscale: 1.0e-05
   patch_drop: 0.0
@@ -116,7 +116,7 @@ student:
   pos_embed_rope_jitter_coords: null
   pos_embed_rope_rescale_coords: 2
   pos_embed_rope_dtype: fp32
-  fp8_enabled: true
+  fp8_enabled: false
   fp8_filter: blocks
 teacher:
   momentum_teacher: null
@@ -135,7 +135,7 @@ hrft:
   enabled: false
   checkpoint_path: ''
 optim:
-  epochs: 100
+  epochs: 32
   optimizer: adamw
   weight_decay: null
   weight_decay_end: null
@@ -161,9 +161,9 @@ crops:
   local_crops_scale:
   - 0.05
   - 0.32
-  global_crops_size: 256
-  local_crops_size: 112
-  gram_teacher_crops_size: 512
+  global_crops_size: 128
+  local_crops_size: 56
+  gram_teacher_crops_size: 256
   localcrops_subset_of_globalcrops: false
   share_color_jitter: false
   horizontal_flips: false
@@ -198,13 +198,13 @@ crops:
 checkpointing:
   period: 1000
   max_to_keep: 3
-  keep_every: 50000
+  keep_every: 5000
 schedules:
   lr:
     start: 0
     peak: 6.0e-05  # 3.0e-05
     end: 6.0e-05  # 3.0e-05
-    warmup_epochs: 10
+    warmup_epochs: 2
     freeze_last_layer_epochs: 5
   weight_decay:
     start: 0.04
